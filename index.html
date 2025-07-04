@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My Wikipedia</title>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        body {
+            background-color: white;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding-top: 30px;
+        }
+        h1 {
+            color: #333;
+        }
+        .icon-container {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 40px;
+            margin-top: 30px;
+        }
+        .icon-box {
+            width: 180px;
+            height: 180px;
+            background-color: #f8f9fa;
+            border-radius: 20px;
+            box-shadow: 2px 2px 10px #ccc;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: 0.3s ease;
+            cursor: pointer;
+        }
+        .icon-box:hover {
+            background-color: #e0e0e0;
+            transform: scale(1.05);
+        }
+        .icon-box i {
+            font-size: 50px;
+            color: #007bff;
+            margin-bottom: 10px;
+        }
+        .icon-label {
+            font-weight: bold;
+            font-size: 18px;
+            color: #333;
+        }
+        #searchBox {
+            display: none;
+            margin-top: 30px;
+        }
+        #searchInput {
+            padding: 8px;
+            width: 250px;
+            font-size: 16px;
+        }
+        #searchResult {
+            margin-top: 15px;
+            text-align: left;
+            max-width: 350px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        #searchResult img {
+            display: block;
+            margin-bottom: 15px;
+            max-width: 300px;
+            border: 1px solid #ccc;
+            padding: 5px;
+        }
+        hr {
+            border: none;
+            border-top: 1px solid #ccc;
+            margin: 10px 0;
+        }
+        .upload-section {
+            display: none;
+            margin-top: 20px;
+        }
+        .upload-section input {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>My Wikipedia</h1>
+
+    <div class="icon-container">
+        <div class="icon-box" onclick="showUpload('fingerprint')">
+            <i class="fas fa-fingerprint"></i>
+            <div class="icon-label">Fingerprint</div>
+        </div>
+        <div class="icon-box" onclick="showUpload('retina')">
+            <i class="fas fa-eye"></i>
+            <div class="icon-label">Retina Scan</div>
+        </div>
+        <div class="icon-box" onclick="showUpload('birth')">
+            <i class="fas fa-file-alt"></i>
+            <div class="icon-label">Birth Certificate</div>
+        </div>
+        <div class="icon-box" onclick="toggleSearchBox()">
+            <i class="fas fa-search"></i>
+            <div class="icon-label">Search</div>
+        </div>
+    </div>
+
+    <!-- Upload Form -->
+    <div id="uploadForm" class="upload-section">
+        <h3 id="uploadTitle">Upload</h3>
+        <input type="text" id="uploadName" placeholder="Enter Birth certificate number"><br>
+        <input type="file" id="uploadFile" accept="image/*"><br>
+        <button onclick="handleUpload()">Save to Database</button>
+    </div>
+
+    <!-- Search -->
+    <div id="searchBox">
+        <h3>Search Person</h3>
+        <input type="text" id="searchInput" placeholder="Enter Birth certificate number to search">
+        <button onclick="searchPerson()">Search</button>
+        <div id="searchResult"></div>
+    </div>
+
+    <script>
+        let currentUploadType = "";
+
+        function showUpload(type) {
+            currentUploadType = type;
+            document.getElementById('uploadForm').style.display = 'block';
+            let label = type === 'fingerprint' ? 'Fingerprint' : (type === 'retina' ? 'Retina Scan' : 'Birth Certificate');
+            document.getElementById('uploadTitle').innerText = `Upload ${label}`;
+        }
+
+        function handleUpload() {
+            const name = document.getElementById('uploadName').value.trim();
+            const fileInput = document.getElementById('uploadFile');
+            const file = fileInput.files[0];
+
+            if (!name || !file || !currentUploadType) {
+                alert("Please enter Birth certificate number and select an image.");
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const key = name.toLowerCase() + "_" + currentUploadType;
+                localStorage.setItem(key, e.target.result);
+                alert(`${currentUploadType} saved for ${name}`);
+                fileInput.value = '';
+                document.getElementById('uploadName').value = '';
+                document.getElementById('uploadForm').style.display = 'none';
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function toggleSearchBox() {
+            const box = document.getElementById('searchBox');
+            box.style.display = box.style.display === 'block' ? 'none' : 'block';
+            document.getElementById('searchResult').innerHTML = '';
+        }
+
+        function searchPerson() {
+            const query = document.getElementById('searchInput').value.trim().toLowerCase();
+            const resultDiv = document.getElementById('searchResult');
+            if (!query) {
+                resultDiv.innerHTML = "<p>Please enter a Birth certificate number to search.</p>";
+                return;
+            }
+
+            const types = ['fingerprint', 'retina', 'birth'];
+            let found = false;
+            resultDiv.innerHTML = `<h4>Results for "${query}"</h4>`;
+
+            types.forEach(type => {
+                const key = query + "_" + type;
+                const data = localStorage.getItem(key);
+                if (data) {
+                    resultDiv.innerHTML += `<p><strong>${type}:</strong></p><img src="${data}" alt="${type} image"><hr>`;
+                    found = true;
+                }
+            });
+
+            if (!found) {
+                resultDiv.innerHTML = "<p>No data found for this Birth certificate number.</p>";
+            }
+        }
+    </script>
+</body>
+</html>
